@@ -6,13 +6,13 @@ class TestVietnameseMorphemizer(unittest.TestCase):
         self.morphemizer = getMorphemizerByName("VietnameseMorphemizer")
 
     def test_morpheme_generation(self):
-        if self.morphemizer is not None:
+        if self.morphemizer is not None and self.morphemizer.exists():
             sentence_1 = ("Trăm năm trong cõi người ta,"
                           " Chữ tài chữ mệnh khéo là ghét nhau."
                           " Trải qua một cuộc bể dâu,"
                           " Những điều trông thấy mà đau đớn lòng.")
 
-            case_1 = ["trăm", "năm", "trong", "cõi", "người ta", "chữ", "tài", "chữ", "mệnh",
+            case_1 = ["trăm năm", "trong", "cõi", "người ta", "chữ", "tài", "chữ", "mệnh",
                       "khéo", "là", "ghét", "nhau", "trải", "qua", "một", "cuộc", "bể dâu",
                       "những", "điều", "trông", "thấy", "mà", "đau đớn", "lòng"]
 

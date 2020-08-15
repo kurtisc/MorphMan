@@ -8,6 +8,7 @@ from aqt.utils import tooltip
 from .util import mw, mkBtn
 from .preferences import get_preference, update_preferences
 from .morphemizer import getAllMorphemizers
+from .morphemizer import VietnameseMorphemizer
 from .UI import MorphemizerComboBox
 
 # only for jedi-auto-completion
@@ -32,6 +33,7 @@ class PreferencesDialog(QDialog):
         self.createTagsTab()
         self.createButtons()
         self.createGeneralTab()
+        self.createOtherLanguagesTab()
 
         self.setLayout(self.vbox)
 
@@ -54,11 +56,7 @@ class PreferencesDialog(QDialog):
         self.tableModel.setHeaderData(3, Qt.Horizontal, "Morphemizer")
         self.tableModel.setHeaderData(4, Qt.Horizontal, "Modify?")
 
-        rowData = get_preference('Filter')
-        self.tableModel.setRowCount(len(rowData))
-        self.rowGui = []
-        for i, row in enumerate(rowData):
-            self.setTableRow(i, row)
+        self.updateNoteFilters()
 
         label = QLabel(
             "Any card that has the given `Note type` and all of the given `Tags` will have its `Fields` analyzed with the specified `Morphemizer`. " +
@@ -178,6 +176,27 @@ class PreferencesDialog(QDialog):
             Qt.Checked if get_preference('Option_SetNotRequiredTags') else Qt.Unchecked)
         vbox.addWidget(self.checkboxSetNotRequiredTags)
 
+        vbox.addStretch()
+
+    def createOtherLanguagesTab(self):
+        self.frame5 = QGroupBox("Other Languages")
+        self.tabWidget.addTab(self.frame5, "Other Languages")
+        vbox = QVBoxLayout()
+        self.frame5.setLayout(vbox)
+        vbox.setContentsMargins(0, 20, 0, 0)
+
+        m = VietnameseMorphemizer()
+        self.vietnameseSupportLabel = QLabel("Vietnamese support: {}".format(m.support))
+        self.installVietnamese = mkBtn("Install Vietnamese support",
+                                       self.onInstallVietnamese,
+                                       vbox)
+
+        self.installVietnamese = mkBtn("Uninstall Vietnamese support",
+                                       self.onUninstallVietnamese,
+                                       vbox)
+        self.vietnameseSupportLabel.setWordWrap(True)
+        vbox.addWidget(self.vietnameseSupportLabel)
+        vbox.addSpacing(20)
         vbox.addStretch()
 
     def createGeneralTab(self):
@@ -372,6 +391,26 @@ class PreferencesDialog(QDialog):
         self.moveRowUp(row + 1)
         self.tableView.selectRow(row + 1)
 
+    def onInstallVietnamese(self):
+        m = VietnameseMorphemizer()
+        self.vietnameseSupportLabel.setText("Installing...")
+        m.install()
+        self.vietnameseSupportLabel.setText(m.support)
+        self.updateNoteFilters()
+
+    def onUninstallVietnamese(self):
+        m = VietnameseMorphemizer()
+        self.vietnameseSupportLabel.setText("Uninstalling...")
+        m.uninstall()
+        self.vietnameseSupportLabel.setText(m.support)
+        self.updateNoteFilters()
+
+    def updateNoteFilters(self):
+        rowData = get_preference('Filter')
+        self.tableModel.setRowCount(len(rowData))
+        self.rowGui = []
+        for i, row in enumerate(rowData):
+            self.setTableRow(i, row)
 
 def main():
     mw.mm = PreferencesDialog(mw)

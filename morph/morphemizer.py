@@ -109,13 +109,52 @@ class VietnameseMorphemizer(Morphemizer):
     Vietnamese contains many compound words where the polysyllabic morphemes
     are divided by spaces, so an extra tool - pyvi - is used instead.
     """
+    def __init__(self):
+        self.support = "Not installed"
+        self._exists = False
+
+        if importlib.util.find_spec('pyvi') is not None:
+            self._exists = True
+            self.support = 'Installed'
+
+    def install(self):
+        # If pyvi isn't installed, try installing it manually
+        if (importlib.util.find_spec('subprocess') is not None and
+            importlib.util.find_spec('sys') is not None):
+            import subprocess
+            import sys
+            try:
+                subprocess.check_call([sys.executable,
+                                       "-m",
+                                       "pip",
+                                       "install",
+                                       "pyvi"])
+
+                self.support = "Installed"
+            except subprocess.CalledProcessError:
+                # pyvi can't be installed
+                self.support = "Not installed: pip can't install pyvi"
+
+    def uninstall(self):
+        if (importlib.util.find_spec('subprocess') is not None and
+            importlib.util.find_spec('sys') is not None):
+            import subprocess
+            import sys
+            try:
+                subprocess.check_call([sys.executable,
+                                       "-m",
+                                       "pip",
+                                       "uninstall",
+                                       "pyvi",
+                                       "-y"])
+
+                self.support = "Uninstalled"
+            except subprocess.CalledProcessError:
+                # pyvi can't be installed
+                self.support = "Can't be uninstalled! pip can't uninstall pyvi"
+
     def exists(self):
-        """
-        pyvi has large dependencies. To avoid bundling it or forcing users to
-        install it as a dependency, the Vietnamese morphizer only appears if
-        pyvi is importable.
-        """
-        return (importlib.util.find_spec('pyvi') is not None)
+        return self._exists
 
     def getMorphemesFromExpr(self, expression):
         from pyvi import ViTokenizer
